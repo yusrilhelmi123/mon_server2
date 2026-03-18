@@ -1,0 +1,34 @@
+# Rencana Implementasi - SensoLab Versi 2.0
+
+Mengembangkan dashboard baru untuk Versi 2.0 yang menggunakan data nyata dari database yang sudah ada, dengan tetap mempertahankan UI/UX canggih dan analisis statistik dari file simulasi [sim_multisensor.html](file:///c:/xampp/htdocs/mon_server/versi2_0/sim_multisensor.html).
+
+## Perubahan yang Diusulkan
+
+### [BARU] [api_v2.php](file:///c:/xampp/htdocs/mon_server/versi2_0/api_v2.php)
+- Buat file PHP baru yang berfungsi sebagai penyedia data untuk dashboard V2.
+- Ambil 30-50 rekaman terakhir dari `tb_monitoring` untuk mengisi histori/grafik.
+- Sertakan heartbeat terbaru (`last_heartbeat`) dan status perekaman (`recording_service`).
+- Format output sebagai JSON agar mudah dikonsumsi oleh Chart.js.
+
+### [BARU] [index.php](file:///c:/xampp/htdocs/mon_server/versi2_0/index.php)
+- Adaptasi [sim_multisensor.html](file:///c:/xampp/htdocs/mon_server/versi2_0/sim_multisensor.html) menjadi file PHP di direktori `versi2_0`.
+- Ganti logika simulasi `setInterval` dengan pemanggilan AJAX `fetch()` ke `api_v2.php`.
+- Petakan kolom database ke UI:
+    - `suhu` (FLOAT) -> Temperatur
+    - `kelembaban` (FLOAT) -> Kelembaban
+    - `cahaya` (PPM) -> Gas MQ135
+    - `ldr` (String) -> Cahaya (akan dipetakan ke numerik 200/800 untuk logika grafik).
+- Pertahankan semua kalkulasi statistik (SD, Mean, RMS, dll.) dan terapkan pada aliran data nyata yang masuk.
+
+## Rencana Verifikasi
+
+### Pengujian Otomatis
+- Akses `http://localhost/mon_server/versi2_0/api_v2.php` untuk memverifikasi struktur JSON mengandung field `history`, `latest`, `is_online`, dan `recording`.
+
+### Verifikasi Manual
+- Buka `http://localhost/mon_server/versi2_0/` di browser.
+- Verifikasi grafik terisi dengan data nyata dari database.
+- Pastikan statistik (Mean, SD) dihitung dengan benar berdasarkan data nyata.
+- Periksa apakah "Confidence Band" dan "Outlier Detection" berfungsi sesuai harapan dengan fluktuasi data nyata.
+- Verifikasi "Status Hardware" (Online/Offline) sinkron dengan status aktual NodeMCU.
+- Konfirmasi bahwa file produksi di luar folder `versi2_0` tidak terpengaruh.

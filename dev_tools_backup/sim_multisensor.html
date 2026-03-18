@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usulan Riset: Evaluasi Reliabilitas Multi-Sensor</title>
+    <!-- Tailwind CSS untuk Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js untuk Grafik Statistik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Animasi Aliran Data */
+        .data-flow-path {
+            stroke-dasharray: 10;
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        /* Kedip LED ESP32 */
+        .led-blink {
+            animation: blink 0.5s infinite alternate;
+        }
+
+        @keyframes blink {
+            from {
+                opacity: 0.3;
+                box-shadow: 0 0 0px rgba(52, 211, 153, 0);
+            }
+
+            to {
+                opacity: 1;
+                box-shadow: 0 0 10px rgba(52, 211, 153, 0.8);
+            }
+        }
+
+        /* Animasi Reviewer */
+        .reviewer-thinking {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Kartu Sensor & Komponen */
+        .sensor-card,
+        .component-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .sensor-card:hover,
+        .component-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Komponen Fisik Mockup */
+        .hw-module {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+            color: #10b981;
+            font-family: monospace;
+            border: 2px solid #334155;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hw-pin {
+            width: 8px;
+            height: 8px;
+            background: gold;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        /* Garis Penghubung Arsitektur */
+        .arch-line {
+            width: 2px;
+            background-color: #cbd5e1;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .arch-arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid #cbd5e1;
+            margin: 0 auto;
+        }
+
+        /* Animasi panah mengalir di arsitektur */
+        .pulse-arrow {
+            animation: slideDown 2s infinite;
+        }
+
+        @keyframes slideDown {
+            0% {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Gaya Rumus Matematis */
+        .math-formula {
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-style: italic;
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px dashed #e2e8f0;
+            display: block;
+        }
+
+        .math-val {
+            color: #64748b;
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* Tooltip Help Style */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: left;
+            border-radius: 8px;
+            padding: 10px 14px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 11px;
+            font-weight: normal;
+            line-height: 1.5;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Varian Tooltip Bawah untuk item paling atas */
+        .tooltip-show-bottom .tooltip-text {
+            top: 125%;
+            bottom: auto;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-slate-800 text-white shadow-md z-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-microchip text-blue-400 text-2xl mr-3"></i>
+                    <div class="flex flex-col leading-tight">
+                        <span class="font-bold text-lg tracking-wide">Riset: Intelligent Env-Monitoring</span>
+                        <span class="text-[10px] text-blue-200 font-medium">Oleh : Vanya Clianta Evelyn Pasha</span>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="switchTab('simulation')" id="tab-btn-simulation"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 shadow-inner">
+                        <i class="fas fa-play-circle mr-2"></i> Simulasi Langsung
+                    </button>
+                    <button onclick="switchTab('architecture')" id="tab-btn-architecture"
+                        class="text-gray-300 hover:bg-slate-700 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
+                        <i class="fas fa-sitemap mr-2"></i> Arsitektur & Kebutuhan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area (Scrollable) -->
+    <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-100">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: SIMULASI LANGSUNG                  -->
+        <!-- ========================================== -->
+        <div id="view-simulation" class="h-full flex flex-col max-w-7xl mx-auto transition-opacity duration-300">
+
+            <!-- Header & Roadmap -->
+            <header class="mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800 mb-2">Simulasi: Evaluasi Reliabilitas Multi-Sensor
+                        </h1>
+                        <p class="text-gray-500 text-sm mb-4">Mendemonstrasikan bagaimana sistem menolak data "Noise"
+                            sebelum masuk ke sistem AI.</p>
+                    </div>
+                    <!-- Tombol Panduan -->
+                    <button onclick="toggleGuide()"
+                        class="bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-lg text-sm font-bold flex items-center transition shadow-sm">
+                        <i class="fas fa-info-circle mr-2 text-lg"></i> Panduan
+                    </button>
+                </div>
+
+                <!-- Roadmap Visual -->
+                <div
+                    class="flex items-center justify-between text-xs md:text-sm font-semibold text-gray-400 mt-6 relative">
+                    <div class="absolute w-full h-1 bg-gray-200 top-1/2 transform -translate-y-1/2 z-0"></div>
+
+                    <div class="z-10 flex flex-col items-center">
+                        <div
+                            class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center border-4 border-blue-100 shadow-md">
+                            1</div>
+                        <span class="mt-2 text-blue-600 font-bold bg-white px-2">Sensor Validation</span>
+                        <span class="text-xs text-blue-400">(Fokus Riset Ini)</span>
+                    </div>
+                    <div class="z-10 flex flex-col items-center opacity-60">
+                        <div
+                            class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center border-4 border-white">
+                            2</div>
+                        <span class="mt-2 bg-white px-2">IoT Integration</span>
+                        <span class="text-[10px] text-gray-400">Transmisi Data Wi-Fi & Cloud</span>
+                    </div>
+                    <div class="z-10 flex flex-col items-center opacity-60">
+                        <div
+                            class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center border-4 border-white">
+                            3</div>
+                        <span class="mt-2 bg-white px-2">Data Intelligence</span>
+                        <span class="text-[10px] text-gray-400">Big Data & Pattern Analysis</span>
+                    </div>
+                    <div class="z-10 flex flex-col items-center opacity-60">
+                        <div
+                            class="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center border-4 border-white">
+                            4</div>
+                        <span class="mt-2 bg-white px-2">AI System</span>
+                        <span class="text-[10px] text-gray-400">Prediksi & Pengambilan Keputusan</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Workspace Simulasi -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+
+                <!-- Left Column: Hardware & Data Acquisition -->
+                <div class="lg:col-span-3 bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
+                    <h2 class="text-lg font-bold text-gray-700 border-b pb-2 mb-4"><i
+                            class="fas fa-microchip mr-2 text-blue-500"></i>Akuisisi Data Fisik</h2>
+
+                    <!-- ESP32 Mockup -->
+                    <div class="hw-module mb-6 text-center">
+                        <div class="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="absolute top-2 right-6 w-3 h-3 bg-green-500 rounded-full led-blink"></div>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/ESP32-DevKitC-V4-front.jpg/320px-ESP32-DevKitC-V4-front.jpg"
+                            onerror="this.style.display='none'" alt="ESP32"
+                            class="w-24 mx-auto rounded mb-2 opacity-80 mix-blend-screen">
+                        <p class="text-xs text-gray-300">ESP32 Microcontroller</p>
+                        <div class="mt-2">
+                            <span class="hw-pin"></span><span class="hw-pin"></span><span class="hw-pin"></span><span
+                                class="hw-pin"></span>
+                        </div>
+                    </div>
+
+                    <!-- Sensor List -->
+                    <div class="space-y-3">
+                        <div class="sensor-card bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-bold">DHT22 (Suhu)</p>
+                            </div>
+                            <p class="text-sm font-mono font-bold text-blue-600" id="val-temp">0.0 °C</p>
+                        </div>
+                        <div class="sensor-card bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-bold">DHT22 (Lembab)</p>
+                            </div>
+                            <p class="text-sm font-mono font-bold text-teal-600" id="val-hum">0.0 %</p>
+                        </div>
+                        <div class="sensor-card bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-bold">MQ135 (Gas)</p>
+                            </div>
+                            <p class="text-sm font-mono font-bold text-purple-600" id="val-gas">0 PPM</p>
+                        </div>
+                        <div class="sensor-card bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-bold">LDR (Cahaya)</p>
+                            </div>
+                            <p class="text-sm font-mono font-bold text-yellow-600" id="val-light">0 Lux</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-4 space-y-2">
+                        <div class="flex gap-2">
+                            <button id="btn-start" onclick="startSim()"
+                                class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg text-sm font-bold hover:bg-green-700 transition shadow-sm flex items-center justify-center">
+                                <i class="fas fa-play mr-2"></i> Mulai
+                            </button>
+                            <button id="btn-stop" onclick="stopSim()"
+                                class="flex-1 bg-gray-200 text-gray-600 px-4 py-3 rounded-lg text-sm font-bold hover:bg-gray-300 transition shadow-sm flex items-center justify-center opacity-50"
+                                disabled>
+                                <i class="fas fa-stop mr-2"></i> Berhenti
+                            </button>
+                        </div>
+                        <button onclick="injectNoise()"
+                            class="w-full bg-red-100 text-red-600 border border-red-300 px-4 py-3 rounded-lg text-sm font-bold hover:bg-red-200 transition shadow-sm">
+                            <i class="fas fa-bolt mr-2"></i> Injeksi Noise
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Center Column: Validation Engine -->
+                <div
+                    class="lg:col-span-6 bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col relative overflow-hidden">
+                    <svg class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style="z-index: 0;">
+                        <path d="M -50 150 C 150 150, 200 50, 400 50" fill="none" stroke="#10b981" stroke-width="4"
+                            class="data-flow-path"></path>
+                    </svg>
+
+                    <h2
+                        class="text-lg font-bold text-gray-700 border-b pb-2 mb-4 z-10 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span><i class="fas fa-search-chart mr-2 text-indigo-500"></i>Sistem Validasi</span>
+                            <select id="sensor-selector" onchange="changeActiveSensor()"
+                                class="text-[10px] bg-white border border-indigo-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400 font-bold text-indigo-600 shadow-sm cursor-pointer">
+                                <option value="temp">Suhu Analisis</option>
+                                <option value="hum">Lembab Analisis</option>
+                                <option value="gas">Gas Analisis</option>
+                                <option value="light">Cahaya Analisis</option>
+                            </select>
+                        </div>
+                        <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full animate-pulse"
+                            id="system-status">Memantau Data...</span>
+                    </h2>
+
+                    <!-- The Character / AI -->
+                    <div class="flex items-center bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 z-10">
+                        <div
+                            class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mr-4 shadow-inner border-2 border-indigo-300 reviewer-thinking flex-shrink-0">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"></path>
+                                <path d="M19 14v1a7 7 0 0 1-14 0v-1"></path>
+                                <line x1="12" y1="22" x2="12" y2="19"></line>
+                                <line x1="12" y1="2" x2="12" y2="4"></line>
+                                <circle cx="12" cy="10" r="1" fill="#4f46e5"></circle>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm relative">
+                                <div
+                                    class="absolute w-3 h-3 bg-white border-l border-b border-gray-200 transform rotate-45 -left-1.5 top-5">
+                                </div>
+                                <p class="text-sm text-gray-700 font-medium" id="reviewer-dialogue">
+                                    "Saya sedang mengakuisisi data... Menghitung deviasi standar untuk mendeteksi
+                                    fluktuasi error."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="flex-1 min-h-[250px] relative z-10 bg-white">
+                        <canvas id="sensorChart"></canvas>
+                    </div>
+
+                    <!-- Statistik Insight Panel (BARU) -->
+                    <div class="mt-4 grid grid-cols-2 gap-3 z-10">
+                        <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                            <h4 class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-1">
+                                <i class="fas fa-chart-area mr-1"></i> Confidence Band (±1σ)
+                            </h4>
+                            <p class="text-[9px] text-indigo-600 leading-tight">Area hijau transparan menunjukkan zona
+                                normalitas data. Semakin sempit area ini, semakin tinggi tingkat presisi instrumen Anda.
+                            </p>
+                        </div>
+                        <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                            <h4 class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-1">
+                                <i class="fas fa-exclamation-triangle mr-1"></i> Outlier Detection
+                            </h4>
+                            <p class="text-[9px] text-indigo-600 leading-tight">Titik merah otomatis muncul jika data
+                                menyimpang >2σ dari rerata, membantu mengidentifikasi gangguan transien secara instan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Results & Output (DIPERBARUI UNTUK RISET) -->
+                <div class="lg:col-span-3 bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
+                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                        <h2 class="text-lg font-bold text-gray-700 font-sans"><i
+                                class="fas fa-microscope mr-2 text-indigo-500"></i>Parameter Evaluasi</h2>
+                        <button onclick="toggleTheory()"
+                            class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1 rounded-full font-bold border border-slate-200 transition flex items-center gap-1">
+                            <i class="fas fa-book-open"></i> TEORI
+                        </button>
+                    </div>
+
+                    <div class="space-y-4 overflow-y-auto pr-1 pb-20 pt-10" style="max-height: 480px;">
+                        <!-- 1. Mean & Std Dev -->
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex justify-between text-xs mb-1">
+                                <div class="flex items-center gap-1.5 text-gray-500 font-semibold text-[11px]">
+                                    <span>Mean (μ) & SD (σ)</span>
+                                    <div class="tooltip-container tooltip-show-bottom">
+                                        <i
+                                            class="fas fa-question-circle text-gray-300 hover:text-blue-500 transition"></i>
+                                        <div class="tooltip-text">
+                                            <strong>Tujuan:</strong> Mengukur nilai pusat dan simpangan data.<br>
+                                            <strong>Atribut:</strong> Σx (Total nilai), n (Sampel), μ (Rerata), x-μ
+                                            (Deviasi).
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="font-mono font-bold text-blue-600"><span id="stat-mean">0.0</span> | <span
+                                        id="stat-std">0.00</span></span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                                <div id="bar-std" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                                    style="width: 10%"></div>
+                            </div>
+                            <span class="math-formula">
+                                μ = Σx/n = <span id="f-sum-x">0</span>/<span id="f-n-1">20</span> = <span id="f-mean"
+                                    class="math-val">...</span><br>
+                                σ = √[Σ(x-μ)²/n] = √[<span id="f-sum-diff">0</span>/<span id="f-n-2">20</span>] = <span
+                                    id="f-std" class="math-val">...</span>
+                            </span>
+                        </div>
+
+                        <!-- 2. Variansi Sinyal -->
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex justify-between text-xs items-center mb-1">
+                                <div class="flex items-center gap-1.5 text-gray-500 font-semibold text-[11px]">
+                                    <span>Variansi Sinyal (σ²)</span>
+                                    <div class="tooltip-container">
+                                        <i
+                                            class="fas fa-question-circle text-gray-300 hover:text-indigo-500 transition"></i>
+                                        <div class="tooltip-text">
+                                            <strong>Tujuan:</strong> Mengukur besarnya penyebaran kuadrat data.<br>
+                                            <strong>Atribut:</strong> σ² (Kuadrat SD).
+                                        </div>
+                                    </div>
+                                </div>
+                                <span id="stat-var" class="font-mono font-bold text-indigo-600">0.000</span>
+                            </div>
+                            <span class="math-formula">
+                                σ² = <span id="f-std-sq">0.00</span>² = <span id="f-var" class="math-val">...</span>
+                            </span>
+                        </div>
+
+                        <!-- 3. Stabilitas Temporal -->
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex justify-between text-xs mb-1">
+                                <div class="flex items-center gap-1.5 text-gray-500 font-semibold text-[11px]">
+                                    <span>Stabilitas Temporal</span>
+                                    <div class="tooltip-container">
+                                        <i
+                                            class="fas fa-question-circle text-gray-300 hover:text-green-500 transition"></i>
+                                        <div class="tooltip-text">
+                                            <strong>Tujuan:</strong> Menilai konsistensi sensor terhadap waktu.<br>
+                                            <strong>Atribut:</strong> CV (Koefisien Variasi), S (Persentase Stabilitas).
+                                        </div>
+                                    </div>
+                                </div>
+                                <span id="stat-stability" class="font-mono font-bold text-green-600">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                                <div id="bar-stability"
+                                    class="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                                    style="width: 90%"></div>
+                            </div>
+                            <span class="math-formula">
+                                CV = σ/μ = <span id="f-stab-cv">0.00</span><br>
+                                S = 100% - (CV × 100%) = <span id="f-stab" class="math-val">...</span>
+                            </span>
+                        </div>
+
+                        <!-- 4. Estimasi Noise & Repeatability -->
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex justify-between text-[11px] mb-2 font-semibold">
+                                <div class="flex items-center gap-1.5 text-gray-500 font-semibold text-[11px]">
+                                    <span>Estimasi Noise (RMS)</span>
+                                    <div class="tooltip-container">
+                                        <i
+                                            class="fas fa-question-circle text-gray-300 hover:text-purple-500 transition"></i>
+                                        <div class="tooltip-text">
+                                            <strong>Tujuan:</strong> Identifikasi amplitudo gangguan frekuensi
+                                            tinggi.<br>
+                                            <strong>Atribut:</strong> RMS (Root Mean Square).
+                                        </div>
+                                    </div>
+                                </div>
+                                <span id="stat-noise" class="text-purple-600 font-mono">0.00</span>
+                            </div>
+                            <span class="math-formula">
+                                RMS_{noise} = √[1/n Σ(x-μ)²]<br>
+                                RMS ≈ <span id="f-rms-std">0.00</span> × 0.707 = <span id="f-noise"
+                                    class="math-val">...</span>
+                            </span>
+                            <div class="mt-3 pt-2 border-t border-gray-100">
+                                <div class="flex justify-between text-[11px] font-semibold mb-1">
+                                    <div class="flex items-center gap-1.5 text-gray-500 font-semibold text-[11px]">
+                                        <span>Repeatability</span>
+                                        <div class="tooltip-container">
+                                            <i
+                                                class="fas fa-question-circle text-gray-300 hover:text-orange-500 transition"></i>
+                                            <div class="tooltip-text">
+                                                <strong>Tujuan:</strong> Kemampuan sensor memberikan hasil yang sama
+                                                berulang kali.<br>
+                                                <strong>Atribut:</strong> Klasifikasi tingkat presisi berdasarkan nilai
+                                                SD (Standard Deviation).
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span id="stat-repeat" class="text-orange-600 font-mono">Tinggi</span>
+                                </div>
+                                <div class="flex justify-between gap-1 mt-1">
+                                    <div class="h-1 flex-1 bg-green-500 rounded-full opacity-20 transition-opacity"
+                                        id="rubric-st" title="<0.5: S. Tinggi"></div>
+                                    <div class="h-1 flex-1 bg-blue-500 rounded-full opacity-20 transition-opacity"
+                                        id="rubric-t" title="0.5-1.0: Tinggi"></div>
+                                    <div class="h-1 flex-1 bg-yellow-500 rounded-full opacity-20 transition-opacity"
+                                        id="rubric-s" title="1.0-2.0: Sedang"></div>
+                                    <div class="h-1 flex-1 bg-red-500 rounded-full opacity-20 transition-opacity"
+                                        id="rubric-r" title=">2.0: Rendah"></div>
+                                </div>
+                                <!-- Legenda Ambang Batas Rubrik -->
+                                <div
+                                    class="flex justify-between text-[8px] text-gray-400 mt-2 font-mono tracking-tighter">
+                                    <span class="text-green-600" title="Sangat Tinggi: σ < 0.5">σ < 0.5</span>
+                                            <span class="text-blue-500" title="Tinggi: σ 0.5 - 1.0">0.5 - 1.0</span>
+                                            <span class="text-yellow-600" title="Sedang: σ 1.0 - 2.0">1.0 - 2.0</span>
+                                            <span class="text-red-500" title="Rendah: σ > 2.0">σ > 2.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final Decision Box -->
+                    <div class="mt-auto pt-6">
+                        <div id="decision-box"
+                            class="bg-green-50 border border-green-200 p-4 rounded-lg text-center transition-colors duration-500">
+                            <i id="decision-icon" class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
+                            <h3 id="decision-title" class="font-bold text-green-800 text-lg">Dataset Valid</h3>
+                            <p id="decision-text" class="text-xs text-green-600 mt-1">Sistem stabil untuk akuisisi data.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: ARSITEKTUR & KEBUTUHAN (BARU)      -->
+        <!-- ========================================== -->
+        <div id="view-architecture" class="hidden max-w-7xl mx-auto opacity-0 transition-opacity duration-300">
+
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Arsitektur Sistem & Alur Kerja</h1>
+                <p class="text-gray-500 mt-2">Gambaran teknis lengkap mengenai rancangan riset dan kebutuhan komponen
+                    keras (Hardware).</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <!-- Kiri: Diagram Arsitektur -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-6 flex items-center">
+                        <i class="fas fa-project-diagram text-indigo-500 mr-3"></i> Topologi Sistem
+                    </h2>
+
+                    <div class="flex flex-col items-center justify-center py-4">
+
+                        <!-- Layer 1: Sensors -->
+                        <div
+                            class="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 w-full text-center relative shadow-sm">
+                            <div
+                                class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                LAYER 1: Perception</div>
+                            <div class="flex justify-around items-center mt-3">
+                                <div class="text-center"><i
+                                        class="fas fa-temperature-high text-red-400 text-3xl mb-1"></i>
+                                    <p class="text-xs font-bold">Suhu & Lembab</p>
+                                </div>
+                                <div class="text-center"><i class="fas fa-wind text-purple-400 text-3xl mb-1"></i>
+                                    <p class="text-xs font-bold">Kualitas Udara</p>
+                                </div>
+                                <div class="text-center"><i class="fas fa-sun text-yellow-400 text-3xl mb-1"></i>
+                                    <p class="text-xs font-bold">Cahaya</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-3">Pembacaan raw data lingkungan sekitar.</p>
+                        </div>
+
+                        <!-- Arrow Down -->
+                        <div class="h-10 arch-line">
+                            <div class="absolute inset-0 flex items-center justify-center"><i
+                                    class="fas fa-chevron-down text-gray-400 pulse-arrow"></i></div>
+                        </div>
+
+                        <!-- Layer 2: Acquisition -->
+                        <div
+                            class="bg-slate-50 border-2 border-slate-300 rounded-xl p-4 w-64 text-center relative shadow-sm">
+                            <div
+                                class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                LAYER 2: Acquisition</div>
+                            <i class="fas fa-microchip text-slate-700 text-4xl mt-3 mb-2"></i>
+                            <h3 class="font-bold text-gray-800">ESP32 Microcontroller</h3>
+                            <p class="text-xs text-gray-500 mt-1">Mengumpulkan semua data via I2C/Analog.</p>
+                        </div>
+
+                        <!-- Arrow Down -->
+                        <div class="h-10 arch-line">
+                            <div class="absolute inset-0 flex items-center justify-center"><i
+                                    class="fas fa-chevron-down text-gray-400 pulse-arrow"></i></div>
+                        </div>
+
+                        <!-- Layer 3: Validation (CORE RESEARCH) -->
+                        <div
+                            class="bg-indigo-50 border-2 border-indigo-400 rounded-xl p-5 w-full text-center relative shadow-lg transform scale-105 z-10">
+                            <div
+                                class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white text-xs font-bold px-4 py-1 rounded-full animate-bounce">
+                                FOKUS RISET INI</div>
+                            <div class="flex items-center justify-center space-x-4 mt-2">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow">
+                                    <i class="fas fa-filter text-indigo-500 text-xl"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="font-bold text-indigo-900 text-lg">Statistical</h3>
+                                    <p class="text-xs text-indigo-700">Filter Outlier, Cek Standar Deviasi, Smoothing
+                                        Data.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Arrow Down -->
+                        <div class="h-10 arch-line">
+                            <div class="absolute inset-0 flex items-center justify-center"><i
+                                    class="fas fa-chevron-down text-green-400 pulse-arrow"
+                                    style="animation-delay: 1s;"></i></div>
+                        </div>
+
+                        <!-- Layer 4: AI & Cloud -->
+                        <div
+                            class="bg-green-50 border-2 border-green-300 border-dashed rounded-xl p-4 w-64 text-center relative">
+                            <div
+                                class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                LAYER 4: Output</div>
+                            <div class="flex justify-center space-x-3 mt-3 mb-1">
+                                <i class="fas fa-cloud text-green-600 text-3xl"></i>
+                                <i class="fas fa-brain text-green-600 text-3xl"></i>
+                            </div>
+                            <h3 class="font-bold text-green-800">IoT Cloud & AI Model</h3>
+                            <p class="text-[10px] text-green-600 mt-1">(Tujuan akhir: Menerima dataset yang sudah 100%
+                                tervalidasi)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kanan: Komponen & Workflow -->
+                <div class="flex flex-col gap-6">
+
+                    <!-- Kebutuhan Komponen Fisik -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-4 flex items-center">
+                            <i class="fas fa-toolbox text-orange-500 mr-3"></i> Kebutuhan Hardware
+                        </h2>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="component-card bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-start"
+                                style="border-left-color: #475569;">
+                                <i class="fas fa-microchip text-slate-600 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-800">Modul ESP32</h4>
+                                    <p class="text-xs text-gray-500 leading-tight">Mikrokontroler utama dengan fitur
+                                        Wi-Fi & prosesor dual-core.</p>
+                                </div>
+                            </div>
+                            <div class="component-card bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-start"
+                                style="border-left-color: #3b82f6;">
+                                <i class="fas fa-temperature-low text-blue-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-800">Sensor DHT22</h4>
+                                    <p class="text-xs text-gray-500 leading-tight">Akurasi tinggi untuk suhu dan
+                                        kelembaban relatif.</p>
+                                </div>
+                            </div>
+                            <div class="component-card bg-purple-50 p-3 rounded-lg border border-purple-100 flex items-start"
+                                style="border-left-color: #8b5cf6;">
+                                <i class="fas fa-smog text-purple-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-800">Sensor MQ135</h4>
+                                    <p class="text-xs text-gray-500 leading-tight">Mendeteksi gas berbahaya (Ammonia,
+                                        Benzene, CO2).</p>
+                                </div>
+                            </div>
+                            <div class="component-card bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-start"
+                                style="border-left-color: #eab308;">
+                                <i class="fas fa-sun text-yellow-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-800">Modul LDR</h4>
+                                    <p class="text-xs text-gray-500 leading-tight">Photoresistor untuk memonitor
+                                        intensitas cahaya ambien.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Workflow Textual -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex-1">
+                        <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-4 flex items-center">
+                            <i class="fas fa-tasks text-teal-500 mr-3"></i> Alur Kerja Validasi
+                        </h2>
+
+                        <ol class="relative border-l border-gray-200 ml-3 space-y-4">
+                            <li class="mb-4 ml-6">
+                                <span
+                                    class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-4 ring-white">
+                                    <span class="text-xs font-bold text-blue-600">1</span>
+                                </span>
+                                <h3 class="font-bold text-gray-800 text-sm">Sampling Data</h3>
+                                <p class="text-xs text-gray-500 mt-1">ESP32 membaca sinyal analog/digital dari keempat
+                                    sensor (Suhu, Lembab, Gas, Cahaya) secara kontinu.</p>
+                            </li>
+                            <li class="mb-4 ml-6">
+                                <span
+                                    class="absolute flex items-center justify-center w-6 h-6 bg-indigo-100 rounded-full -left-3 ring-4 ring-white">
+                                    <span class="text-xs font-bold text-indigo-600">2</span>
+                                </span>
+                                <h3 class="font-bold text-gray-800 text-sm">Perhitungan Buffer</h3>
+                                <p class="text-xs text-gray-500 mt-1">Sistem menyimpan 20 data terakhir di dalam *array*
+                                    lokal dan menghitung nilai rata-rata (*Moving Average*).</p>
+                            </li>
+                            <li class="mb-4 ml-6">
+                                <span
+                                    class="absolute flex items-center justify-center w-6 h-6 bg-orange-100 rounded-full -left-3 ring-4 ring-white">
+                                    <span class="text-xs font-bold text-orange-600">3</span>
+                                </span>
+                                <h3 class="font-bold text-gray-800 text-sm">Pendeteksian Outlier (Noise)</h3>
+                                <p class="text-xs text-gray-500 mt-1">Sistem menghitung Standar Deviasi. Jika simpangan
+                                    data lebih besar dari batas wajar (>1.5), status sistem ditandai "Invalid".</p>
+                            </li>
+                            <li class="ml-6">
+                                <span
+                                    class="absolute flex items-center justify-center w-6 h-6 bg-green-100 rounded-full -left-3 ring-4 ring-white">
+                                    <span class="text-xs font-bold text-green-600">4</span>
+                                </span>
+                                <h3 class="font-bold text-gray-800 text-sm">Keputusan Eksekusi</h3>
+                                <p class="text-xs text-gray-500 mt-1">Hanya set data yang lolos dari seleksi
+                                    yang diizinkan untuk dikirim via Wi-Fi ke database pusat untuk diolah
+                                    AI.</p>
+                            </li>
+                        </ol>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL PANDUAN PENGGUNAAN -->
+    <div id="guide-modal"
+        class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 transition-opacity duration-300 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-blue-600 p-5 text-white flex justify-between items-center">
+                <h2 class="text-xl font-bold"><i class="fas fa-book-open mr-2"></i> Selamat Datang di Proposal
+                    Interaktif</h2>
+                <button onclick="toggleGuide()"
+                    class="text-white hover:text-gray-200 bg-blue-700 hover:bg-blue-800 rounded-full w-8 h-8 flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <p class="text-gray-600 mb-4 font-medium">Ini bukan sekadar presentasi biasa. Anda dapat melihat secara
+                    langsung bagaimana ide riset ini bekerja.</p>
+                <div class="space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                        <h3 class="font-bold text-blue-800 mb-1"><i class="fas fa-play-circle text-lg mr-2"></i> Tab
+                            Simulasi & Adaptasi Sensor</h3>
+                        <p class="text-sm text-gray-700">Gunakan dropdown <strong
+                                class="text-indigo-600 bg-indigo-50 px-1 rounded">Sensor Selector</strong> untuk
+                            berpindah antar analisis sensor. Grafik akan secara dinamis menampilkan <strong
+                                class="text-green-600">Confidence Band (±1σ)</strong> dan menandai <strong
+                                class="text-red-500 border-b border-red-200">Outlier</strong> secara otomatis.</p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                        <h3 class="font-bold text-emerald-800 mb-1"><i class="fas fa-microscope text-lg mr-2"></i>
+                            Belajar Parameter & Teori</h3>
+                        <p class="text-sm text-gray-700">Arahkan kursor ke ikon <strong
+                                class="text-blue-500 inline-block font-bold">?</strong> pada setiap parameter untuk
+                            melihat atribut rumus, atau klik tombol <strong
+                                class="text-slate-700 bg-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">TEORI</strong>
+                            untuk mempelajari landasan ilmiah riset ini.</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-slate-800 mb-1"><i class="fas fa-bolt text-lg mr-2 text-red-500"></i>
+                            Injeksi Noise</h3>
+                        <p class="text-sm text-gray-700">Cobalah tombol <strong
+                                class="text-red-600 bg-red-100 px-1 rounded font-bold">Injeksi Noise</strong> untuk
+                            menguji ketangguhan sistem dalam menolak data yang tidak valid secara real-time.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-5 border-t border-gray-200 text-center">
+                <button onclick="toggleGuide()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition">
+                    Mulai Jelajahi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TEORI INSTRUMENTASI -->
+    <div id="theory-modal"
+        class="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4 transition-opacity duration-300 hidden opacity-0 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold flex items-center"><i class="fas fa-university mr-2"></i> Landasan Teori Evaluasi
+                    Instrumen</h2>
+                <button onclick="toggleTheory()" class="hover:bg-indigo-700 p-2 rounded-lg transition"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6">
+                <section>
+                    <h3 class="font-bold text-indigo-900 border-b pb-1 mb-2">1. Mean (μ) & Standard Deviation (σ)</h3>
+                    <p class="text-sm text-gray-600 mb-2"><strong>Mean</strong> adalah nilai rerata aritmatika dari
+                        dataset. <strong>Standard Deviation</strong> mengukur jumlah variasi atau dispersi dari
+                        sekumpulan nilai data. Dalam sensor, σ yang rendah menunjukkan presisi yang tinggi.</p>
+                </section>
+                <section>
+                    <h3 class="font-bold text-indigo-900 border-b pb-1 mb-2">2. Variansi Sinyal (σ²)</h3>
+                    <p class="text-sm text-gray-600 mb-2">Variansi adalah kuadrat dari deviasi standar. Dalam pengolahan
+                        sinyal, variansi merepresentasikan daya (power) dari komponen noise yang ada pada sinyal sensor.
+                    </p>
+                </section>
+                <section>
+                    <h3 class="font-bold text-indigo-900 border-b pb-1 mb-2">3. Stabilitas Temporal (S)</h3>
+                    <p class="text-sm text-gray-600 mb-2">Dihitung berdasarkan <em>Coefficient of Variation (CV)</em>.
+                        Stabilitas mengukur kemampuan sensor mempertahankan pembacaan yang konsisten dari waktu ke waktu
+                        tanpa adanya perubahan input yang signifikan.</p>
+                </section>
+                <section>
+                    <h3 class="font-bold text-indigo-900 border-b pb-1 mb-2">4. Noise RMS & Repeatability</h3>
+                    <p class="text-sm text-gray-600 mb-2"><strong>RMS (Root Mean Square)</strong> memberikan gambaran
+                        statistik tentang besarnya noise listrik dalam instrumen. <strong>Repeatability</strong> mengacu
+                        pada kedekatan hasil pengukuran berturut-turut di bawah kondisi pengukuran yang sama.</p>
+                </section>
+                <section class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                    <h3 class="font-bold text-indigo-900 flex items-center mb-3"><i
+                            class="fas fa-clipboard-check mr-2"></i> Rubrik Kualitas Data (Repeatability)</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white p-2 rounded border border-green-100">
+                            <p class="text-[10px] font-bold text-green-700">SANGAT TINGGI (σ < 0.5)</p>
+                                    <p class="text-[9px] text-gray-500">Data sangat presisi, noise minimal.</p>
+                        </div>
+                        <div class="bg-white p-2 rounded border border-blue-100">
+                            <p class="text-[10px] font-bold text-blue-700">TINGGI (σ 0.5 - 1.0)</p>
+                            <p class="text-[9px] text-gray-500">Standar industri instrumentasi.</p>
+                        </div>
+                        <div class="bg-white p-2 rounded border border-yellow-100">
+                            <p class="text-[10px] font-bold text-yellow-700">SEDANG (σ 1.0 - 2.0)</p>
+                            <p class="text-[9px] text-gray-500">Dapat diterima dengan filter.</p>
+                        </div>
+                        <div class="bg-white p-2 rounded border border-red-100">
+                            <p class="text-[10px] font-bold text-red-700">RENDAH (σ > 2.0)</p>
+                            <p class="text-[9px] text-gray-500">Data tidak reliabel/rusak.</p>
+                        </div>
+                    </div>
+                </section>
+                <section class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <h3 class="font-bold text-gray-800 flex items-center mb-2"><i
+                            class="fas fa-graduation-cap mr-2"></i> Referensi Belajar</h3>
+                    <ul class="text-xs text-gray-500 space-y-1 list-disc ml-4">
+                        <li>Bently, J. P. (2005). <em>Principles of Measurement Systems</em>. Pearson Education.</li>
+                        <li>Webster, J. G. (1999). <em>The Measurement, Instrumentation, and Sensors Handbook</em>. CRC
+                            Press.</li>
+                        <li>ISO 5725-1: Precision of measurement methods and results.</li>
+                    </ul>
+                </section>
+            </div>
+            <div class="p-4 bg-gray-50 border-t flex justify-end">
+                <button onclick="toggleTheory()"
+                    class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition">Tutup
+                    Teori</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logika Simulasi & Navigasi -->
+    <script>
+        const MAX_N = 20;
+
+        // Logika Navigasi Tab (Single Page App)
+        function switchTab(tabId) {
+            const simView = document.getElementById('view-simulation');
+            const archView = document.getElementById('view-architecture');
+            const btnSim = document.getElementById('tab-btn-simulation');
+            const btnArch = document.getElementById('tab-btn-architecture');
+
+            if (tabId === 'simulation') {
+                // Tampilkan Simulasi
+                archView.classList.add('opacity-0');
+                setTimeout(() => {
+                    archView.classList.add('hidden');
+                    simView.classList.remove('hidden');
+                    // Paksa reflow sebelum memunculkan opacity
+                    void simView.offsetWidth;
+                    simView.classList.remove('opacity-0');
+                }, 200);
+
+                // Styling Tombol
+                btnSim.className = "bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 shadow-inner";
+                btnArch.className = "text-gray-300 hover:bg-slate-700 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300";
+            } else {
+                // Tampilkan Arsitektur
+                simView.classList.add('opacity-0');
+                setTimeout(() => {
+                    simView.classList.add('hidden');
+                    archView.classList.remove('hidden');
+                    void archView.offsetWidth;
+                    archView.classList.remove('opacity-0');
+                }, 200);
+
+                // Styling Tombol
+                btnArch.className = "bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300 shadow-inner";
+                btnSim.className = "text-gray-300 hover:bg-slate-700 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300";
+            }
+        }
+
+        // Fungsi Panduan Modal
+        function toggleGuide() {
+            const modal = document.getElementById('guide-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.classList.remove('opacity-0', 'pointer-events-none'), 10);
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        // Fungsi Teori Modal
+        function toggleTheory() {
+            const modal = document.getElementById('theory-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.classList.remove('opacity-0', 'pointer-events-none'), 10);
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        // Tampilkan panduan secara otomatis saat dimuat
+        window.onload = function () {
+            toggleGuide();
+        };
+
+        // Inisialisasi Chart.js
+        const ctx = document.getElementById('sensorChart').getContext('2d');
+        const sensorChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: MAX_N }, (_, i) => ''),
+                datasets: [
+                    {
+                        label: 'Suhu Aktual',
+                        data: Array(MAX_N).fill(25),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 0,
+                        pointBackgroundColor: '#3b82f6'
+                    },
+                    {
+                        label: 'Rata-rata (μ)',
+                        data: Array(MAX_N).fill(25),
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Batas Atas SD (μ+σ)',
+                        data: Array(MAX_N).fill(25.5),
+                        borderColor: 'transparent',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: '+1',
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Batas Bawah SD (μ-σ)',
+                        data: Array(MAX_N).fill(24.5),
+                        borderColor: 'transparent',
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 0 },
+                scales: {
+                    y: { min: 20, max: 35 },
+                    x: { display: false }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                }
+            }
+        });
+
+        // Variabel Data Simulasi (Multi-Sensor Support)
+        let activeSensor = 'temp';
+        let sensorHistory = {
+            temp: Array(MAX_N).fill(25),
+            hum: Array(MAX_N).fill(60),
+            gas: Array(MAX_N).fill(400),
+            light: Array(MAX_N).fill(800)
+        };
+
+        const sensorConfigs = {
+            temp: { label: 'Suhu', unit: '°C', min: 20, max: 35, threshold: 0.5 },
+            hum: { label: 'Kelembaban', unit: '%', min: 40, max: 80, threshold: 1.0 },
+            gas: { label: 'Gas', unit: 'PPM', min: 300, max: 1000, threshold: 20 },
+            light: { label: 'Cahaya', unit: 'Lux', min: 500, max: 1200, threshold: 50 }
+        };
+
+        let baseTemp = 25.0;
+        let isNoisy = false;
+        let noiseTimer = null;
+        let simInterval = null;
+
+        function changeActiveSensor() {
+            activeSensor = document.getElementById('sensor-selector').value;
+            const config = sensorConfigs[activeSensor];
+
+            // Reset skala chart
+            sensorChart.options.scales.y.min = config.min;
+            sensorChart.options.scales.y.max = config.max;
+            sensorChart.data.datasets[0].label = `${config.label} Aktual (${config.unit})`;
+
+            // Re-update visual
+            updateData(true);
+        }
+
+        function startSim() {
+            if (simInterval) return;
+            simInterval = setInterval(updateData, 800);
+
+            // Update UI
+            document.getElementById('btn-start').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('btn-start').disabled = true;
+            document.getElementById('btn-stop').classList.remove('opacity-50');
+            document.getElementById('btn-stop').disabled = false;
+            document.getElementById('system-status').innerText = "Akuisisi Aktif...";
+            document.getElementById('system-status').className = "text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full animate-pulse";
+        }
+
+        function stopSim() {
+            clearInterval(simInterval);
+            simInterval = null;
+
+            // Update UI
+            document.getElementById('btn-start').classList.remove('opacity-50', 'pointer-events-none');
+            document.getElementById('btn-start').disabled = false;
+            document.getElementById('btn-stop').classList.add('opacity-50');
+            document.getElementById('btn-stop').disabled = true;
+            document.getElementById('system-status').innerText = "Akuisisi Berhenti";
+            document.getElementById('system-status').className = "text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full";
+        }
+
+        function calculateMean(data) {
+            return data.reduce((a, b) => a + b, 0) / data.length;
+        }
+
+        function calculateStandardDeviation(data, mean) {
+            const squareDiffs = data.map(value => Math.pow(value - mean, 2));
+            const avgSquareDiff = calculateMean(squareDiffs);
+            return Math.sqrt(avgSquareDiff);
+        }
+
+        function updateData() {
+            // Generate Noise untuk semua sensor agar data di background tetap mengalir
+            let tempNoise = isNoisy ? (Math.random() * 10 - 5) : (Math.random() * 0.6 - 0.3);
+            let humNoise = isNoisy ? (Math.random() * 16 - 8) : (Math.random() * 1.5 - 0.75);
+            let gasNoise = isNoisy ? (Math.random() * 400 - 200) : (Math.random() * 10 - 5);
+            let lightNoise = isNoisy ? (Math.random() * 600 - 300) : (Math.random() * 20 - 10);
+
+            // Nilai saat ini
+            let currentTemp = baseTemp + tempNoise;
+            let currentHum = 60 + humNoise;
+            let currentGas = 400 + gasNoise;
+            let currentLight = 800 + lightNoise;
+
+            // Update UI Monitor (Kiri)
+            document.getElementById('val-temp').innerText = currentTemp.toFixed(1) + ' °C';
+            document.getElementById('val-hum').innerText = currentHum.toFixed(1) + ' %';
+            document.getElementById('val-gas').innerText = Math.round(currentGas) + ' PPM';
+            document.getElementById('val-light').innerText = Math.round(currentLight) + ' Lux';
+
+            // Masukkan ke riwayat masing-masing
+            sensorHistory.temp.shift(); sensorHistory.temp.push(currentTemp);
+            sensorHistory.hum.shift(); sensorHistory.hum.push(currentHum);
+            sensorHistory.gas.shift(); sensorHistory.gas.push(currentGas);
+            sensorHistory.light.shift(); sensorHistory.light.push(currentLight);
+
+            // Ambil data dari sensor yang sedang AKTIF untuk dianalisis
+            const history = sensorHistory[activeSensor];
+            const config = sensorConfigs[activeSensor];
+
+            let mean = calculateMean(history);
+            let sumDiffSq = history.reduce((a, b) => a + Math.pow(b - mean, 2), 0);
+            let sumX = history.reduce((a, b) => a + b, 0);
+            let stdDev = calculateStandardDeviation(history, mean);
+
+            // Update Grafik Statistik
+            sensorChart.data.datasets[0].data = history;
+            sensorChart.data.datasets[1].data = Array(MAX_N).fill(mean);
+            sensorChart.data.datasets[2].data = Array(MAX_N).fill(mean + stdDev);
+            sensorChart.data.datasets[3].data = Array(MAX_N).fill(mean - stdDev);
+
+            // Outlier Detection (Merah jika menyimpang > 1.5*SD)
+            sensorChart.data.datasets[0].pointRadius = history.map(v => Math.abs(v - mean) > 1.5 * stdDev ? 4 : 0);
+            sensorChart.data.datasets[0].pointBackgroundColor = '#ff4444';
+
+            sensorChart.update();
+            evaluateData(mean, stdDev, sumX, sumDiffSq, config);
+        }
+
+        function evaluateData(mean, stdDev, sumX, sumDiffSq, config) {
+            // 1. Mean & Std Dev
+            document.getElementById('stat-mean').innerText = mean.toFixed(config.unit === '°C' || config.unit === '%' ? 1 : 0);
+            document.getElementById('stat-std').innerText = stdDev.toFixed(2);
+            // Bar SD scales based on config threshold
+            document.getElementById('bar-std').style.width = Math.min((stdDev / (config.threshold * 4)) * 100, 100) + '%';
+
+            // 2. Variansi Sinyal (sigma squared)
+            let variance = Math.pow(stdDev, 2);
+            document.getElementById('stat-var').innerText = variance.toFixed(3);
+
+            // 3. Stabilitas Temporal
+            let cv = mean !== 0 ? (stdDev / mean) : 0;
+            let stability = Math.max(0, 100 - (cv * 100));
+            document.getElementById('stat-stability').innerText = stability.toFixed(1) + '%';
+            document.getElementById('bar-stability').style.width = stability + '%';
+
+            // 4. Estimasi Noise (RMS Proxy)
+            let noiseRMS = stdDev * 0.707;
+            document.getElementById('stat-noise').innerText = noiseRMS.toFixed(2);
+
+            // 5. Repeatability Rubric & Indicator (Adaptive to sensor threshold)
+            let rLabel = "";
+            let rubrics = ['rubric-st', 'rubric-t', 'rubric-s', 'rubric-r'];
+            rubrics.forEach(r => document.getElementById(r).classList.replace('opacity-100', 'opacity-20'));
+
+            const t = config.threshold;
+            if (stdDev < t) {
+                rLabel = "Sangat Tinggi";
+                document.getElementById('rubric-st').classList.replace('opacity-20', 'opacity-100');
+            } else if (stdDev < t * 2) {
+                rLabel = "Tinggi";
+                document.getElementById('rubric-t').classList.replace('opacity-20', 'opacity-100');
+            } else if (stdDev < t * 4) {
+                rLabel = "Sedang";
+                document.getElementById('rubric-s').classList.replace('opacity-20', 'opacity-100');
+            } else {
+                rLabel = "Rendah";
+                document.getElementById('rubric-r').classList.replace('opacity-20', 'opacity-100');
+            }
+            document.getElementById('stat-repeat').innerText = rLabel;
+
+            // 6. UPDATE FORMULAS REAL-TIME
+            document.getElementById('f-sum-x').innerText = Math.round(sumX);
+            document.getElementById('f-mean').innerText = `${mean.toFixed(1)}`;
+            document.getElementById('f-sum-diff').innerText = sumDiffSq.toFixed(2);
+            document.getElementById('f-std').innerText = `${stdDev.toFixed(2)}`;
+            document.getElementById('f-std-sq').innerText = stdDev.toFixed(2);
+            document.getElementById('f-var').innerText = `${variance.toFixed(3)}`;
+            document.getElementById('f-stab-cv').innerText = cv.toFixed(3);
+            document.getElementById('f-stab').innerText = `${stability.toFixed(1)}%`;
+            document.getElementById('f-rms-std').innerText = stdDev.toFixed(2);
+            document.getElementById('f-noise').innerText = `${noiseRMS.toFixed(2)}`;
+
+            // 7. FINAL DECISION (dataset valid/invalid)
+            const dialogue = document.getElementById('reviewer-dialogue');
+            const decBox = document.getElementById('decision-box');
+            const decIcon = document.getElementById('decision-icon');
+            const decTitle = document.getElementById('decision-title');
+            const decText = document.getElementById('decision-text');
+            const statusBadge = document.getElementById('system-status');
+
+            if (stdDev > config.threshold * 2 || stability < 95) {
+                dialogue.innerHTML = `<span class="text-red-600 font-bold"><i class="fas fa-exclamation-triangle"></i> Terdeteksi Ketidakstabilan pada ${config.label}!</span> Variansi sinyal (${variance.toFixed(3)}) melampaui toleransi instrumen.`;
+                document.getElementById('bar-std').classList.replace('bg-blue-500', 'bg-red-500');
+                statusBadge.innerText = "Noise Terdeteksi";
+                statusBadge.className = "text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full animate-pulse";
+                decBox.className = "bg-red-50 border border-red-200 p-4 rounded-lg text-center transition-colors duration-500";
+                decIcon.className = "fas fa-times-circle text-4xl text-red-500 mb-2";
+                decTitle.className = "font-bold text-red-800 text-lg";
+                decTitle.innerText = "Dataset Invalid";
+                decText.className = "text-xs text-red-600 mt-1";
+                decText.innerText = "Tingkat presisi di bawah standar riset.";
+            } else {
+                dialogue.innerHTML = `Sistem memvalidasi sensor ${config.label}. <br><span class="text-green-600 font-bold text-xs">✔ Karakteristik statistik stabil. Data layak untuk dataset AI.</span>`;
+                document.getElementById('bar-std').classList.replace('bg-red-500', 'bg-blue-500');
+                statusBadge.innerText = "Sistem Stabil";
+                statusBadge.className = "text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full";
+                decBox.className = "bg-green-50 border border-green-200 p-4 rounded-lg text-center transition-colors duration-500";
+                decIcon.className = "fas fa-check-circle text-4xl text-green-500 mb-2";
+                decTitle.className = "font-bold text-green-800 text-lg";
+                decTitle.innerText = "Dataset Valid";
+                decText.className = "text-xs text-green-600 mt-1";
+                decText.innerText = "Karakteristik sinyal memenuhi syarat reliabilitas.";
+            }
+        }
+
+        function injectNoise() {
+            isNoisy = true;
+            clearTimeout(noiseTimer);
+            noiseTimer = setTimeout(() => { isNoisy = false; }, 4000);
+        }
+
+        // Simulasi tidak berjalan otomatis saat load agar user bisa menekan tombol Mulai
+    </script>
+</body>
+
+</html>
