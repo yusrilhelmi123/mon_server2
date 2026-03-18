@@ -1,22 +1,34 @@
 <?php
-/**
- * SensoLab - Database Connection Configuration
- * Edit this file to match your server credentials (e.g. for InfinityFree)
- */
+// Deteksi environment: Lokal (XAMPP) atau Online (Hosting)
+$serverName = $_SERVER['SERVER_NAME'] ?? '';
+$serverAddr = $_SERVER['SERVER_ADDR'] ?? '';
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "db_sensor";
+// Dianggap LOKAL jika: localhost, 127.0.0.1, atau IP jaringan lokal (192.168.x.x / 10.x.x.x)
+$isLocal = ($serverName === 'localhost'
+    || $serverAddr === '127.0.0.1'
+    || strpos($serverAddr, '192.168.') === 0
+    || strpos($serverAddr, '10.') === 0
+    || strpos($serverName, '192.168.') === 0);
 
-// Create connection
+if ($isLocal) {
+    // PENGATURAN LOKAL (XAMPP)
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "db_sensor";
+} else {
+    // PENGATURAN ONLINE (domainesia-aapanel)
+    $servername = "localhost";
+    $username = "root";
+    $password = "BjxRP8Gy6jCitc4k";
+    $dbname = "db_sensor";
+}
+
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
 if ($conn->connect_error) {
     die("Koneksi Database Gagal: " . $conn->connect_error);
 }
 
-// Initial Settings
 date_default_timezone_set('Asia/Jakarta');
 ?>

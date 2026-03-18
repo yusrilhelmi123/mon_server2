@@ -192,9 +192,10 @@ $hariIni = strtr($hariIni, array_merge($hariMap, $bulanMap));
 
     // Tangkap data dari NodeMCU (Metode GET)
     if (isset($_GET['cahaya']) && isset($_GET['gas'])) {
-        // PERBARUI HEARTBEAT (Hardware Terdeteksi Aktif)
+
+        // SELALU UPDATE HEARTBEAT — terlepas dari status recording
         $now = time();
-        $conn->query("INSERT INTO tb_settings (name, value) VALUES ('last_heartbeat', '$now') ON DUPLICATE KEY UPDATE value = '$now'");
+        $hbQuery = $conn->query("INSERT INTO tb_settings (name, value) VALUES ('last_heartbeat', '$now') ON DUPLICATE KEY UPDATE value = '$now'");
 
         // Cek apakah perekaman sedang aktif
         $recordingRes = $conn->query("SELECT value FROM tb_settings WHERE name = 'recording_service'");
