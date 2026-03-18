@@ -1,6 +1,5 @@
 <?php
-date_default_timezone_set('Asia/Jakarta');
-$conn = new mysqli('localhost', 'root', '', 'db_sensor');
+require_once 'db_connect.php';
 
 $totalData = 0;
 $latestWaktu = '-';

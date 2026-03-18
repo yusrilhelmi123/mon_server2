@@ -1,11 +1,6 @@
 <?php
 header('Content-Type: application/json');
-$conn = new mysqli('localhost', 'root', '', 'db_sensor');
-
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'error' => 'DB Connection failed']);
-    exit;
-}
+require_once '../db_connect.php';
 
 // 1. Ambil data yang belum dilabeli
 $sql = "SELECT m.id, m.suhu, m.kelembaban, m.cahaya as gas, m.ldr 

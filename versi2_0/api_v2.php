@@ -1,12 +1,6 @@
 <?php
 header('Content-Type: application/json');
-date_default_timezone_set('Asia/Jakarta');
-
-$conn = new mysqli('localhost', 'root', '', 'db_sensor');
-if ($conn->connect_error) {
-    echo json_encode(['error' => 'Koneksi Database Gagal']);
-    exit;
-}
+require_once '../db_connect.php';
 
 // 1. Ambil 50 data terakhir untuk grafik (Histori)
 // Dibalik urutannya agar dari lama ke baru untuk Chart.js

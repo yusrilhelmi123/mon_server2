@@ -1,10 +1,6 @@
 <?php
 header('Content-Type: application/json');
-$conn = new mysqli('localhost', 'root', '', 'db_sensor');
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'error' => 'DB Error']);
-    exit;
-}
+require_once '../db_connect.php';
 
 if (isset($_POST['action']) && $_POST['action'] === 'toggle_recording') {
     // Ambil status saat ini

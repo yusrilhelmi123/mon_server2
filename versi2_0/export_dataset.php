@@ -1,7 +1,5 @@
 <?php
-$conn = new mysqli('localhost', 'root', '', 'db_sensor');
-if ($conn->connect_error)
-    die("Connection failed");
+require_once '../db_connect.php';
 
 $filename = "Sensolab_Valid_Dataset_" . date('Ymd_His') . ".csv";
 

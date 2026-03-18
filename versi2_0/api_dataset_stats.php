@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-$conn = new mysqli('localhost', 'root', '', 'db_sensor');
+require_once '../db_connect.php';
 
 $total_mon = $conn->query("SELECT COUNT(*) as t FROM tb_monitoring")->fetch_assoc()['t'];
 $labeled = $conn->query("SELECT COUNT(*) as t FROM tb_reliability_labels")->fetch_assoc()['t'];

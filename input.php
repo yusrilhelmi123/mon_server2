@@ -1,13 +1,9 @@
 <?php
-date_default_timezone_set('Asia/Jakarta');
+require_once 'db_connect.php';
 $hariIni = date('l, d F Y');
 $hariMap = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => "Jum'at", 'Saturday' => 'Sabtu'];
 $bulanMap = ['January' => 'Januari', 'February' => 'Februari', 'March' => 'Maret', 'April' => 'April', 'May' => 'Mei', 'June' => 'Juni', 'July' => 'Juli', 'August' => 'Agustus', 'September' => 'September', 'October' => 'Oktober', 'November' => 'November', 'December' => 'Desember'];
 $hariIni = strtr($hariIni, array_merge($hariMap, $bulanMap));
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "db_sensor";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -189,9 +185,7 @@ $dbname = "db_sensor";
     </div>
 
     <?php
-    // Koneksi ke Database
-    $conn = new mysqli($servername, $username, $password, $dbname);
-
+    // Koneksi ke Database sudah di-require di baris awal file
     if ($conn->connect_error) {
         die("Koneksi Gagal: " . $conn->connect_error);
     }

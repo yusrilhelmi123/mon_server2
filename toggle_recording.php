@@ -1,7 +1,5 @@
 <?php
-$conn = new mysqli('localhost', 'root', '', 'db_sensor');
-if ($conn->connect_error)
-    die("Fail");
+require_once 'db_connect.php';
 
 if (isset($_POST['status'])) {
     $status = $conn->real_escape_string($_POST['status']);

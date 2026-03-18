@@ -313,8 +313,10 @@ header('X-Frame-Options: SAMEORIGIN');
                                 <i class="fas fa-exclamation-triangle text-lg"></i>
                             </div>
                             <div>
-                                <div class="text-[10px] font-bold text-red-700 uppercase tracking-wider">Dataset Tidak
-                                    Valid</div>
+                                <div class="text-[10px] font-bold text-red-700 uppercase tracking-wider flex items-center gap-1">
+                                    <span>Dataset Tidak Valid</span>
+                                    <i class="fas fa-circle-question opacity-40 hover:opacity-100 cursor-help text-[9px]" title="Dataset Tidak Valid (Invalid): Kumpulan data yang terdeteksi memiliki fluktuasi ekstrem atau noise sinyal di atas ambang batas toleransi riset (Software Noise Filtering)."></i>
+                                </div>
                                 <div id="summary-total-invalid" class="text-xl font-bold text-slate-800 leading-none">0
                                 </div>
                                 <div class="text-[9px] text-red-500 font-bold mt-1">Noise Terdeteksi</div>
@@ -477,20 +479,32 @@ header('X-Frame-Options: SAMEORIGIN');
 
                         <div class="grid grid-cols-2 gap-2 mb-3 text-center">
                             <div class="bg-slate-50 py-1.5 rounded-xl border border-slate-100 shadow-sm">
-                                <div class="text-[9px] text-slate-400 font-bold uppercase">Valid</div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase flex items-center justify-center gap-1">
+                                    Valid
+                                    <i class="fas fa-circle-question opacity-60 cursor-help" title="Valid Dataset: Data yang telah melewati tahap validasi statistik dan dinyatakan memiliki stabilitas yang baik (low noise). Data inilah yang akan digunakan untuk pemodelan AI."></i>
+                                </div>
                                 <div id="ds-valid" class="text-sm font-bold text-emerald-600">0</div>
                             </div>
                             <div class="bg-slate-100/50 py-1.5 rounded-xl border border-slate-100 shadow-sm">
-                                <div class="text-[9px] text-slate-400 font-bold uppercase">Pending</div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase flex items-center justify-center gap-1">
+                                    Pending
+                                    <i class="fas fa-circle-question opacity-60 cursor-help" title="Pending Dataset: Data mentah yang baru masuk dan belum diproses oleh mesin pelabelan otomatis. Anda perlu menekan tombol 'Proses Labeling' untuk memvalidasinya."></i>
+                                </div>
                                 <div id="ds-pending" class="text-sm font-bold text-amber-500">0</div>
                             </div>
                         </div>
 
                         <div class="space-y-2">
+                        <div class="flex items-center gap-2">
                             <button onclick="runLabeling()"
-                                class="w-full py-1.5 bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-600 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all border border-slate-200 flex items-center justify-center gap-2">
+                                class="flex-1 py-1.5 bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-600 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all border border-slate-200 flex items-center justify-center gap-2">
                                 <i class="fas fa-tags text-[10px]"></i> Proses Labeling
                             </button>
+                            <button title="Fungsi Labelling: Menjalankan algoritma pembersihan dataset secara otomatis. Sistem akan memindai riwayat data dan memberikan label 'VALID' pada data yang stabil (berkualitas) serta 'INVALID' pada data yang terdeteksi sebagai noise/anomali. Ini sangat penting untuk menghasilkan dataset yang siap digunakan untuk pelatihan Machine Learning atau publikasi ilmiah."
+                                class="w-8 py-1.5 bg-slate-50 text-slate-400 hover:text-blue-500 rounded-lg border border-slate-200 transition-colors flex items-center justify-center">
+                                <i class="fas fa-circle-question text-xs"></i>
+                            </button>
+                        </div>
                             <a href="export_dataset.php" download="Sensolab_Dataset.csv"
                                 class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2">
                                 <i class="fas fa-file-csv text-xs"></i> Export Valid Dataset (CSV)
