@@ -4,7 +4,7 @@
 
 // ================= KONFIGURASI WIFI & SERVER =================
 const char *ssid = "YusriLizer_NetCrowd2";
-const char *password = "120351anya";
+const char *password = "xxxxxxxxxx";
 String serverIP = "192.168.1.11";
 // =============================================================
 
