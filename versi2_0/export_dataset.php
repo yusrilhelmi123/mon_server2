@@ -15,10 +15,10 @@ header('Expires: 0');
 $output = fopen('php://output', 'w');
 
 // Header CSV
-fputcsv($output, ['ID', 'Waktu', 'Temperatur(C)', 'Kelembaban(%)', 'Gas(PPM)', 'LDR_Status', 'Valid_Status']);
+fputcsv($output, ['ID', 'Waktu', 'Temperatur(C)', 'Kelembaban(%)', 'Gas(PPM)', 'LDR_Status', 'Valid_Status', 'Reliability_Score']);
 
 // Ambil hanya data yang valid
-$query = "SELECT m.id, m.waktu, m.suhu, m.kelembaban, m.cahaya as gas, m.ldr, l.is_valid 
+$query = "SELECT m.id, m.waktu, m.suhu, m.kelembaban, m.cahaya as gas, m.ldr, l.is_valid, l.reliability_score
           FROM tb_monitoring m 
           JOIN tb_reliability_labels l ON m.id = l.monitoring_id 
           WHERE l.is_valid = 1 
@@ -34,7 +34,8 @@ while ($row = $result->fetch_assoc()) {
         $row['kelembaban'],
         $row['gas'],
         $row['ldr'],
-        'VALID'
+        'VALID',
+        number_format((float)$row['reliability_score'], 4, '.', '')
     ]);
 }
 

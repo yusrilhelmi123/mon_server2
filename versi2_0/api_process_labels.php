@@ -48,15 +48,29 @@ foreach ($data_to_label as $row) {
     }
 
     $is_valid = 1; // Default valid
+    $reliability_score = 0.5; // Default netral (data terlalu sedikit untuk dihitung)
 
     // Hitung SD untuk setiap sensor dalam window tersebut
     if (count($suhu_arr) > 5) {
         $sd_suhu = calculate_sd($suhu_arr);
-        $sd_hum = calculate_sd($hum_arr);
-        $sd_gas = calculate_sd($gas_arr);
+        $sd_hum  = calculate_sd($hum_arr);
+        $sd_gas  = calculate_sd($gas_arr);
+
+        // --- Hitung Reliability Score (0.0 - 1.0) ---
+        // Skor per sensor: seberapa jauh SD dari batas maksimum toleransi
+        $max_suhu = $thresholds['suhu'] * 3;      // batas SD suhu
+        $max_hum  = $thresholds['kelembaban'] * 3; // batas SD kelembaban
+        $max_gas  = $thresholds['gas'] * 3;        // batas SD gas
+
+        $score_suhu = max(0.0, 1.0 - ($sd_suhu / $max_suhu));
+        $score_hum  = max(0.0, 1.0 - ($sd_hum  / $max_hum));
+        $score_gas  = max(0.0, 1.0 - ($sd_gas  / $max_gas));
+
+        // Rata-rata tertimbang: Gas lebih berpengaruh (bobot 0.5)
+        $reliability_score = round(($score_suhu * 0.25) + ($score_hum * 0.25) + ($score_gas * 0.50), 4);
 
         // Kriteria Validitas: Jika salah satu sensor sangat berisik (noise), tandai invalid
-        if ($sd_suhu > $thresholds['suhu'] * 3 || $sd_hum > $thresholds['kelembaban'] * 3 || $sd_gas > $thresholds['gas'] * 3) {
+        if ($sd_suhu > $max_suhu || $sd_hum > $max_hum || $sd_gas > $max_gas) {
             $is_valid = 0;
         }
 
@@ -65,11 +79,16 @@ foreach ($data_to_label as $row) {
         if (abs($row['suhu'] - $avg_suhu) > $sd_suhu * 2 && $sd_suhu > 0.1) {
             $is_valid = 0;
         }
+
+        // Jika akhirnya invalid, skor tidak boleh melebihi 0.4
+        if ($is_valid === 0) {
+            $reliability_score = min($reliability_score, 0.40);
+        }
     }
 
-    // Masukkan ke tabel label
-    $stmt = $conn->prepare("INSERT IGNORE INTO tb_reliability_labels (monitoring_id, is_valid) VALUES (?, ?)");
-    $stmt->bind_param("ii", $id, $is_valid);
+    // Masukkan ke tabel label (dengan reliability_score)
+    $stmt = $conn->prepare("INSERT IGNORE INTO tb_reliability_labels (monitoring_id, is_valid, reliability_score) VALUES (?, ?, ?)");
+    $stmt->bind_param("iid", $id, $is_valid, $reliability_score);
     $stmt->execute();
 
     $processed++;
